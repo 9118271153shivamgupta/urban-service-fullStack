@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Poppins Font Setup */
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Manforce Theme Colors (Optional: Bold Red/Black) */
+  --color-brand: #E11D48; 
+}
+
+:root {
+  font-family: var(--font-sans);
+}
