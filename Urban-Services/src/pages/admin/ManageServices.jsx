@@ -69,11 +69,11 @@ const ManageServices = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Manage Services</h2>
+        <div className="p-6 bg-gray-900  text-white min-h-screen">
+            <h2 className="text-2xl font-bold mb-6 text-white">Manage Services</h2>
 
             {/* Dynamic Add Service Form */}
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-md mb-10 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <form onSubmit={handleSubmit} className="bg-gray-900 p-6 rounded-xl shadow-md mb-10 grid grid-cols-1 md:grid-cols-2 gap-5 text-white">
                 
                 {/* Name */}
                 <div className="flex flex-col gap-1">
