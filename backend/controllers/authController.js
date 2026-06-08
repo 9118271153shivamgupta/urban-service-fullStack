@@ -3,8 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // REGISTER CONTROLLER
-// REGISTER CONTROLLER - Updated for object based array layout mapping
-// REGISTER CONTROLLER
 exports.register = async (req, res) => {
     try {
         const { 
@@ -36,7 +34,6 @@ exports.register = async (req, res) => {
         let processedCategories = [];
         if (req.body.categories) {
             try {
-                // Agar string format me hai to parse karega, nahi to direct use karega
                 processedCategories = typeof req.body.categories === 'string' 
                     ? JSON.parse(req.body.categories) 
                     : req.body.categories;
@@ -85,10 +82,13 @@ exports.register = async (req, res) => {
     }
 };
 
-// LOGIN CONTROLLER - Isko bhi fix kar diya taaki token payload me updated key mile
+// LOGIN CONTROLLER
+// LOGIN CONTROLLER (Updated with strict profile matrix synchronization)
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        
+        // 🎯 1. Database se ekdum fresh user document nikaalo
         const user = await User.findOne({ email });
 
         if (!user) return res.status(401).json({ message: "Invalid Credentials" });
@@ -103,6 +103,7 @@ exports.login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
+        // 🎯 2. Response me ekdum updated state hi bhejni hai frontend ko
         res.json({
             message: "Login successful",
             token,
@@ -110,15 +111,60 @@ exports.login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                phone: user.phone || "",
+                address: user.address || "",
+                city: user.city || "Gorakhpur",
+                pincode: user.pincode || "",
+                profilePic: user.profilePic || "",
+                panCard: user.panCard || "",
+                aadhaarCard: user.aadhaarCard || "",
                 role: user.role,
                 permissions: user.permissions,
-                providerInfo: user.providerInfo // Yeh frontend pe full profile/services bhejega
+                // Yeh direct fresh nested object bhejega frontend storage me sync hone ke liye
+                providerInfo: user.providerInfo || { categories: [] } 
             }
         });
     } catch (error) {
-        res.status(500).json({ message: "Login Error" });
+        console.error("Login Error snapshot:", error);
+        res.status(500).json({ message: "Login Error", error: error.message });
     }
 };
+
+
+
+// exports.login = async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         const user = await User.findOne({ email });
+
+//         if (!user) return res.status(401).json({ message: "Invalid Credentials" });
+
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) return res.status(401).json({ message: "Invalid Credentials" });
+
+//         // JWT Token Generation
+//         const token = jwt.sign(
+//             { id: user._id, role: user.role }, 
+//             "YOUR_SECRET_KEY", 
+//             { expiresIn: '1d' }
+//         );
+
+//         res.json({
+//             message: "Login successful",
+//             token,
+//             user: {
+//                 id: user._id,
+//                 name: user.name,
+//                 email: user.email,
+//                 role: user.role,
+//                 permissions: user.permissions,
+//                 providerInfo: user.providerInfo // Yeh frontend pe full profile/services bhejega
+//             }
+//         });
+//     } catch (error) {
+//         res.status(500).json({ message: "Login Error" });
+//     }
+// };
 
 // UPDATE PROFILE CONTROLLER
 exports.updateProfile = async (req, res) => {
@@ -164,83 +210,50 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
-// // LOGIN CONTROLLER
-// exports.login = async (req, res) => {
-//     try {
-//         const { email, password } = req.body;
-//         const user = await User.findOne({ email });
+// 🎯 FIXED: GET MAPPED PARTNERS CONTROLLER
+exports.getMappedPartners = async (req, res) => {
+    try {
+        const { serviceId } = req.params;
 
-//         if (!user) return res.status(401).json({ message: "Invalid Credentials" });
+        // Query: Find providers who have the target serviceId inside their categories array
+        const linkedProviders = await User.find({
+            role: 'provider',
+            'providerInfo.categories.serviceId': serviceId
+        });
 
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         if (!isMatch) return res.status(401).json({ message: "Invalid Credentials" });
+        // FIXED: Structural output generation formatting wrapper. 
+        // We preserve providerInfo so it matches exactly what your frontend map loop checks first!
+        const formattedProviders = linkedProviders.map(p => ({
+            _id: p._id,
+            name: p.name,
+            username: p.username,
+            email: p.email,
+            providerInfo: {
+                experience: p.providerInfo?.experience || "",
+                serviceRange: p.providerInfo?.serviceRange || "Gorakhpur",
+                ownerImage: p.providerInfo?.ownerImage || "",
+                shopImage: p.providerInfo?.shopImage || "",
+                categories: p.providerInfo?.categories || []
+            },
+            // Include flat structures for absolute fallback tolerance
+            experience: p.providerInfo?.experience,
+            serviceRange: p.providerInfo?.serviceRange,
+            ownerImage: p.providerInfo?.ownerImage,
+            shopImage: p.providerInfo?.shopImage,
+            categories: p.providerInfo?.categories || []
+        }));
 
-//         // JWT Token Generation
-//         const token = jwt.sign(
-//             { id: user._id, role: user.role }, 
-//             "YOUR_SECRET_KEY", // Apni secret key dalei n
-//             { expiresIn: '1d' }
-//         );
+        return res.status(200).json({ 
+            success: true, 
+            data: formattedProviders 
+        });
 
-//         res.json({
-//             message: "Login successful",
-//             token,
-//             user: {
-//                 id: user._id,
-//                 name: user.name,
-//                 email: user.email,
-//                 role: user.role,
-//                 permissions: user.permissions,
-//                 shopImage: user.shopImage,   // Send images to frontend on login
-//                 ownerImage: user.ownerImage, // Send images to frontend on login
-//                 categories: user.categories
-//             }
-//         });
-//     } catch (error) {
-//         res.status(500).json({ message: "Login Error" });
-//     }
-// };
-
-// // UPDATE PROFILE CONTROLLER
-// exports.updateProfile = async (req, res) => {
-//     try {
-//         const { userId, name, password } = req.body;
-
-//         let user = await User.findById(userId);
-//         if (!user) return res.status(404).json({ message: "User not found" });
-
-//         if (name) user.name = name;
-
-//         if (password) {
-//             const salt = await bcrypt.genSalt(10);
-//             user.password = await bcrypt.hash(password, salt);
-//         }
-
-//         await user.save();
-
-//         res.json({
-//             message: "Profile updated successfully!",
-//             user: { id: user._id, name: user.name, email: user.email }
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({ message: "Server Error", error });
-//     }
-// };
-
-// // RESET PASSWORD CONTROLLER
-// exports.resetPassword = async (req, res) => {
-//     try {
-//         const { email, newPassword } = req.body;
-//         const user = await User.findOne({ email });
-//         if (!user) return res.status(404).json({ message: "User not found!" });
-
-//         const salt = await bcrypt.genSalt(10);
-//         user.password = await bcrypt.hash(newPassword, salt);
-//         await user.save();
-
-//         res.json({ message: "Password reset successful! Please login." });
-//     } catch (error) {
-//         res.status(500).json({ message: "Server error" });
-//     }
-// };
+    } catch (err) {
+        console.error("Error fetching mapped partners:", err);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Internal Server Error Key Failure", 
+            error: err.message 
+        });
+    }
+};

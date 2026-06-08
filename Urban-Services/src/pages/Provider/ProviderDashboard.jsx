@@ -1,9 +1,10 @@
 import React from 'react'
+import SuperAdminDashboard from '../admin/SuperAdminDashboardComponent/SuperAdminDashboard'
 
 const ProviderDashboard = () => {
   return (
     <div>
-      <h1> This is provider Page</h1>
+      <SuperAdminDashboard/>
     </div>
   )
 }

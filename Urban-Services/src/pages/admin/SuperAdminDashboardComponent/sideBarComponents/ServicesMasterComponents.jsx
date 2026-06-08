@@ -1,10 +1,11 @@
 // src/pages/admin/admindashboardcomponent/ServicesMasterComponents.jsx
 import React from 'react';
 import FuturePlaceholder from '../FuturePlaceholder';
-import ManageServices from '../../ManageServices';
+import ManageServices from './add-services/ManageServices';
+import ServicesList from './ServicesList';
 
 export const AllServicesList = () => (
-  <FuturePlaceholder title="Services Master Grid" subtitle="Manage pricing, hourly base rates, and active system services." />
+ <ServicesList/>
 );
 
 export const AddNewService = () => (

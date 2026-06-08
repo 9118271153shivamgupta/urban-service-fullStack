@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import UserFilterBar from './UserFilterBar';
 import UserTableSheet from './UserTableSheet';
-import { useUsers } from './useUsers';
+import { useUsers } from '../useUsers';
 
 const UserManagement = () => {
     const { 

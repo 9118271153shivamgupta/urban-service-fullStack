@@ -5,14 +5,12 @@ const ServiceCard = ({ id, name, icon }) => {
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
   
-  // Backend Base URL
   const BASE_URL = 'http://localhost:5000';
-
-  // Check if icon is a path or a full URL
-  const imageSrc = icon ? `${BASE_URL}/${icon.replace(/\\/g, "/")}` : `https://images.unsplash.com/photo-1581578731548-c64695ce6958?q=80&w=500&auto=format&fit=crop`;
+  const imageSrc = icon ? `${BASE_URL}/${icon.replace(/\\/g, "/")}` : `https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=500&auto=format&fit=crop`;
 
   return (
     <div 
+      // 🌟 Hamesha parameters standard match rkhein routing links ke liye
       onClick={() => navigate(`/service/${id}`)}
       className="flex flex-col items-center cursor-pointer group w-full"
     >
@@ -30,11 +28,10 @@ const ServiceCard = ({ id, name, icon }) => {
           }`}
           onLoad={() => setIsLoaded(true)}
           onError={(e) => {
-            e.target.src = `https://images.unsplash.com/photo-1581578731548-c64695ce6958?q=80&w=500&auto=format&fit=crop`;
+            e.target.src = `https://images.unsplash.com/photo-1581578731548-c64695cc6958?q=80&w=500&auto=format&fit=crop`;
             setIsLoaded(true);
           }}
         />
-
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
       </div>
       

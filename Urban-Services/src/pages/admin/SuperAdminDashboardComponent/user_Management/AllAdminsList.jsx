@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader2, Shield } from 'lucide-react';
-import { useUsers } from './useUsers'; // Aapka existing hook
+import { useUsers } from '../useUsers'; // Aapka existing hook
 
 const AllAdminsList = () => {
     // loading aur filteredUsers direct aapke custom hook se nikal rahe hain

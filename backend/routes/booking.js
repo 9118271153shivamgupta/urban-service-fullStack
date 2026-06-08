@@ -54,6 +54,17 @@ router.put('/update-status/:id', async (req, res) => {
     }
 });
 
+// GET providers by service ID
+router.get('/api/providers/service/:serviceId', async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    // Un users ko find karein jinki services array mein yeh serviceId exist karti ho
+    const providers = await mongoose.model('User').find({ services: serviceId });
+    res.json(providers);
+  } catch (err) {
+    res.status(500).json({ message: "Server Error", error: err });
+  }
+});
 module.exports = router;
 
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Calendar, Phone, User, Search, AlertCircle, MapPin, MessageSquare, Tag } from 'lucide-react';
+import { Loader2, Calendar, Phone, User, Search, AlertCircle, MapPin, MessageSquare, Tag, ListFilter, CheckCircle, XCircle, Clock, CheckSquare } from 'lucide-react';
 
 const ServicesBookingList = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("All"); // 🎯 New State for Status Filter
 
     // Fetch Bookings from Database
     const fetchBookings = async () => {
@@ -49,8 +50,17 @@ const ServicesBookingList = () => {
         }
     };
 
-    // Enhanced Filter Logic (Includes Pincode and Category Search)
+    // 🎯 Enhanced Filter Logic (Includes Status Mapping + Search)
     const filteredBookings = (bookings || []).filter(b => {
+        // 1. Status Filter Logic
+        if (statusFilter !== "All") {
+            if (statusFilter === "Pending" && b.status !== "Pending") return false;
+            if (statusFilter === "Accepted" && b.status !== "Accepted") return false;
+            if (statusFilter === "Completed" && b.status !== "Completed") return false;
+            if (statusFilter === "Cancelled" && b.status !== "Cancelled") return false;
+        }
+
+        // 2. Search Query Logic
         const query = searchQuery.toLowerCase().trim();
         if (!query) return true;
         
@@ -84,7 +94,7 @@ const ServicesBookingList = () => {
     );
 
     return (
-        <div className="space-y-6 text-left animate-in fade-in duration-300">
+        <div className="space-y-6 text-left animate-in fade-in duration-300 font-['Poppins']">
             {/* Top Header Row */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -103,6 +113,64 @@ const ServicesBookingList = () => {
                         className="w-full bg-[#061437] border border-blue-900/40 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-orange-500/50 transition-all placeholder:text-gray-500 font-medium shadow-inner"
                     />
                 </div>
+            </div>
+
+            {/* 🎯 Status Filter Tabs Row */}
+            <div className="flex flex-wrap items-center gap-2 bg-[#000b21] p-1.5 rounded-xl border border-blue-900/20 w-fit">
+                <button
+                    onClick={() => setStatusFilter("All")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                        statusFilter === "All" 
+                            ? "bg-blue-600 text-white shadow-md" 
+                            : "text-gray-400 hover:text-white hover:bg-blue-900/20"
+                    }`}
+                >
+                    <ListFilter size={14} /> All ({bookings.length})
+                </button>
+
+                <button
+                    onClick={() => setStatusFilter("Pending")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                        statusFilter === "Pending" 
+                            ? "bg-amber-500 text-[#000b21] shadow-md" 
+                            : "text-amber-500/80 hover:text-amber-400 hover:bg-amber-500/10"
+                    }`}
+                >
+                    <Clock size={14} /> Pending ({bookings.filter(b => b.status === "Pending" || !b.status || b.status === "").length})
+                </button>
+
+                <button
+                    onClick={() => setStatusFilter("Accepted")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                        statusFilter === "Accepted" 
+                            ? "bg-blue-500 text-white shadow-md" 
+                            : "text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                    }`}
+                >
+                    <CheckCircle size={14} /> Accepted ({bookings.filter(b => b.status === "Accepted").length})
+                </button>
+
+                <button
+                    onClick={() => setStatusFilter("Completed")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                        statusFilter === "Completed" 
+                            ? "bg-emerald-500 text-white shadow-md" 
+                            : "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                    }`}
+                >
+                    <CheckSquare size={14} /> Completed ({bookings.filter(b => b.status === "Completed").length})
+                </button>
+
+                <button
+                    onClick={() => setStatusFilter("Cancelled")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                        statusFilter === "Cancelled" 
+                            ? "bg-rose-600 text-white shadow-md" 
+                            : "text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                    }`}
+                >
+                    <XCircle size={14} /> Rejected ({bookings.filter(b => b.status === "Cancelled").length})
+                </button>
             </div>
 
             {/* Table Box Container */}
@@ -126,7 +194,7 @@ const ServicesBookingList = () => {
                                     <td colSpan="7" className="p-12 text-center text-gray-400">
                                         <div className="flex flex-col items-center justify-center space-y-2">
                                             <AlertCircle className="text-orange-500/80 animate-pulse" size={32} />
-                                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">No Bookings Logged</p>
+                                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">No {statusFilter !== "All" ? statusFilter : ""} Bookings Found</p>
                                             <p className="text-[10px] text-gray-500 lowercase">system is waiting for live client requests or query mismatch</p>
                                         </div>
                                     </td>
@@ -187,14 +255,14 @@ const ServicesBookingList = () => {
                                         {/* 6. Status Badge */}
                                         <td className="p-4 text-center">
                                             <span className={`inline-block px-2.5 py-1 text-[10px] font-black uppercase tracking-wider border rounded-lg ${getStatusBadge(booking.status)}`}>
-                                                {booking.status}
+                                                {booking.status || 'Pending'}
                                             </span>
                                         </td>
 
                                         {/* 7. Controls Actions */}
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {booking.status === 'Pending' && (
+                                                {(booking.status === 'Pending' || !booking.status) && (
                                                     <button 
                                                         onClick={() => handleStatusUpdate(booking._id, 'Accepted')}
                                                         className="px-2 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold uppercase transition-all"
